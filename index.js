@@ -1,18 +1,47 @@
-// createAutocomplete({
-//     root: document.querySelector('.autocomplete'),
-//     renderOption: ,
-//     onOptionSelect: ,
-//     inputValue: ,
-//     fetchData:
-// })
+createAutocomplete({
+  root: document.querySelector('.autocomplete'),
 
-const fetchData = async (searchTerm) => {
+  renderOption(movie) {
+    const imgSrc = movie.Poster === 'N/A' ? '' : movie.Poster;
+    return `
+      <img src='${imgSrc}'; />
+      ${movie.Title} (${movie.Year})
+    `;
+  },
+
+  onOptionSelect(movie) {
+    onMovieSelect(movie);
+  },
+
+  inputValue(movie) {
+    return `${movie.Title} (${movie.Year})`;
+  },
+  
+  async fetchData(searchTerm) {
+    const params = {
+      apikey: 'ee24b215',
+      s: searchTerm,
+    };
+
+    const response = await axios.get('http://www.omdbapi.com/', {
+      params,
+    });
+
+    if (response.data.Error) {
+      return [];
+    }
+
+    return response.data.Search;
+  },
+});
+
+const onMovieSelect = async (movie) => {
   const params = {
-    apikey: "ee24b215",
-    s: searchTerm,
+    apikey: 'ee24b215',
+    i: movie.imdbID,
   };
 
-  const response = await axios.get("http://www.omdbapi.com/", {
+  const response = await axios.get('http://www.omdbapi.com/', {
     params,
   });
 
@@ -20,57 +49,46 @@ const fetchData = async (searchTerm) => {
     return [];
   }
 
-  return response.data.Search;
+  document.querySelector('#summary').innerHTML = movieTemplate(response.data);
 };
 
-const root = document.querySelector(".autocomplete");
-root.innerHTML = `
-  <label><b>Search</b></label>
-  <input class="input" />
-  <div class="dropdown">
-    <div class="dropdown-menu">
-      <div class="dropdown-content results"></div>
-    </div>
-  </div>
-`;
+const movieTemplate = (movieDetail) => {
+  return `
+    <article class="media">
+      <figure class="media-left">
+        <p class="image">
+          <img src="${movieDetail.Poster}" />
+        </p>
+      </figure>
 
-const input = document.querySelector("input");
-const dropdown = document.querySelector(".dropdown");
-const resultsWrapper = document.querySelector(".results");
+      <div class="media-content"
+        <div class="content">
+          <h1>${movieDetail.Title}</h1>
+          <h4>${movieDetail.Genre}</h4>
+          <p>${movieDetail.Plot}</p>
+        </div>
+      </div>
+    </article>
 
-const onInput = async (event) => {
-  const movies = await fetchData(event.target.value);
- 
-  if (!movies.length) {
-    dropdown.classList.remove('is-active');
-    return;
-  }
-
-  resultsWrapper.innerHTML = "";
-  dropdown.classList.add("is-active");
-  for (let movie of movies) {
-    const option = document.createElement("a");
-    const imgSrc = movie.Poster === "N/A" ? "" : movie.Poster;
-
-    option.classList.add("dropdown-item");
-    option.innerHTML = `
-      <img src='${imgSrc}'; />
-      ${movie.Title} (${movie.Year})
-    `;
-
-    option.addEventListener('click', () => {
-      dropdown.classList.remove('is-active');
-      input.value = movie.Title;
-    });
-
-    resultsWrapper.appendChild(option);
-  }
+    <article class="notification is-primary">
+      <p class="title">Awards</p>
+      <p class="subtitle">${movieDetail.Awards}</p>      
+    </article>
+    <article class="notification is-primary">
+      <p class="title">Box Office</p>
+      <p class="subtitle">${movieDetail.BoxOffice}</p>    
+    </article>
+    <article class="notification is-primary">
+      <p class="title">Metascore</p>
+      <p class="subtitle">${movieDetail.Metascore}</p>    
+    </article>
+    <article class="notification is-primary">
+      <p class="title">IMDB Rating</p>
+      <p class="subtitle">${movieDetail.imdbRating}</p>      
+    </article>
+    <article class="notification is-primary">
+      <p class="title">IMDB Votes</p>
+      <p class="subtitle">${movieDetail.imdbVotes}</p>      
+    </article>
+  `;
 };
-
-input.addEventListener("input", debounce(onInput, 500));
-
-document.addEventListener("click", (event) => {
-  if (!root.contains(event.target)) {
-    dropdown.classList.remove("is-active");
-  }
-});

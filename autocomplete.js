@@ -1,9 +1,10 @@
-const createAutocomplete = ({
-    root, 
-    renderOption, 
-    onOptionSelect, 
-    inputValue, 
-    fetchData}) => {
+const createAutocomplete = ({ 
+  root, 
+  renderOption, 
+  onOptionSelect, 
+  inputValue, 
+  fetchData 
+}) => {
   root.innerHTML = `
       <label><b>Search</b></label>
       <input class="input" />
@@ -30,7 +31,6 @@ const createAutocomplete = ({
     dropdown.classList.add('is-active');
     for (let item of items) {
       const option = document.createElement('a');
-      
 
       option.classList.add('dropdown-item');
       option.innerHTML = renderOption(item);

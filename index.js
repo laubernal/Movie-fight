@@ -10,7 +10,7 @@ const autoCompleteConfig = {
   inputValue(movie) {
     return `${movie.Title} (${movie.Year})`;
   },
-  
+
   async fetchData(searchTerm) {
     const params = {
       apikey: 'ee24b215',
@@ -29,16 +29,16 @@ const autoCompleteConfig = {
   },
 };
 
-createAutocomplete({ 
+createAutocomplete({
   root: document.querySelector('#left-autocomplete'),
-  ...autoCompleteConfig, 
+  ...autoCompleteConfig,
   onOptionSelect(movie) {
     document.querySelector('.tutorial').classList.add('is-hidden');
     onMovieSelect(movie, document.querySelector('#left-summary'), 'left');
   },
 });
 
-createAutocomplete({  
+createAutocomplete({
   root: document.querySelector('#right-autocomplete'),
   ...autoCompleteConfig,
   onOptionSelect(movie) {
@@ -77,11 +77,39 @@ const onMovieSelect = async (movie, summaryElement, side) => {
 };
 
 const runComparison = () => {
-  console.log("Time for comparison");
-}
+  const leftSideStats = document.querySelectorAll('#left-summary .notification'); 
+  const rightSideStats = document.querySelectorAll('#right-summary .notification');
+
+  leftSideStats.forEach((leftStat, index) => {
+    const rightStat = rightSideStats[index];
+
+    const leftSideValue = parseInt(leftStat.dataset.value);
+    const rightSideValue = parseInt(rightStat.dataset.value);
+
+    if (rightSideValue > leftSideValue) {
+      leftStat.classList.remove('is-primary');
+      leftStat.classList.add('is-warning');
+    } else {
+      rightStat.classList.remove('is-primary');
+      rightStat.classList.add('is-warning');
+    }
+  });
+};
 
 const movieTemplate = (movieDetail) => {
-  
+  const awards = movieDetail.Awards.split(' ').reduce((acc, currValue) => {
+    const value = parseInt(currValue);
+
+    if (isNaN(value)) {
+      return acc;
+    }
+    
+    return acc + currValue;
+  }, 0);
+  const boxOffice = parseInt(movieDetail.BoxOffice.replace(/\$/g, '').replace(/,/g, ''));
+  const metascore = parseInt(movieDetail.Metascore);
+  const imdbRating = parseFloat(movieDetail.imdbRating);
+  const imdbVotes = parseInt(movieDetail.imdbVotes.replace(/,/g, ''));
 
   return `
     <article class="media">
@@ -100,23 +128,23 @@ const movieTemplate = (movieDetail) => {
       </div>
     </article>
 
-    <article class="notification is-primary">
+    <article data-value=${awards} class="notification is-primary">
       <p class="subtitle">Awards</p>
       <p class="title">${movieDetail.Awards}</p>      
     </article>
-    <article class="notification is-primary">
+    <article data-value=${boxOffice} class="notification is-primary">
       <p class="subtitle">Box Office</p>
       <p class="title">${movieDetail.BoxOffice}</p>    
     </article>
-    <article class="notification is-primary">
+    <article data-value=${metascore} class="notification is-primary">
       <p class="subtitle">Metascore</p>
       <p class="title">${movieDetail.Metascore}</p>    
     </article>
-    <article class="notification is-primary">
+    <article data-value=${imdbRating} class="notification is-primary">
       <p class="subtitle">IMDB Rating</p>
       <p class="title">${movieDetail.imdbRating}</p>      
     </article>
-    <article class="notification is-primary">
+    <article data-value=${imdbVotes} class="notification is-primary">
       <p class="subtitle">IMDB Votes</p>
       <p class="title">${movieDetail.imdbVotes}</p>      
     </article>
